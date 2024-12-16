@@ -56,3 +56,27 @@ function Convert-MouseToLParam
 
     return ($X -band 0xFFFF) + (($Y -band 0xFFFF) -shl 16);
 }
+
+function Open-FilePropertiesDialog
+{
+    param(
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Path
+    )
+
+    $entry = Get-Item -Path $Path
+
+    $o = new-object -com Shell.Application
+
+    if ($entry -is [IO.FileInfo])
+    {
+        $folder = $o.NameSpace([IO.Path]::GetDirectoryName($entry.FullName))
+        $fo = $folder.ParseName($entry.Name)
+        $fo.InvokeVerb("Properties")
+    }
+    else
+    {
+        $folder = $o.NameSpace($entry.FullName)
+        $folder.Self.InvokeVerb("Properties")
+    }
+}
