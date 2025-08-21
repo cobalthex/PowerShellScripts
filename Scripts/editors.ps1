@@ -1,5 +1,38 @@
 function sublime { & "C:\Program Files\Sublime Text\sublime_text.exe" $args }
 
+function Setup-VSDevShell {
+    param(
+        $VSVersion = '2022',
+        $Arch = 'x64'
+    )
+
+    $vsInstallPath = & (Join-Path ${Env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe') -property InstallationPath | ? { $_ -match $VSVersion }
+    if (!$vsInstallPath)
+    {
+        throw "Could not find Visual Studio install directory. Do you have Visual Studio $VSVersion installed?"
+    }
+
+    Import-Module (Join-Path $vsInstallPath 'Common7\Tools\Microsoft.VisualStudio.DevShell.dll')
+    Enter-VsDevShell -vsInstallPath $vsInstallPath -SkipAutomaticLocation -DevCmdArguments "-arch=$Arch" # -host_arch=x64"
+}
+
+function Open-VisualStudio {
+    param(
+        [Parameter(Position=0)]
+        $SolutionOrProject,
+        $VSVersion = '2022'
+    )
+
+    $vsExePath = & (Join-Path ${Env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe') -property ProductPath | ? { $_ -match $VSVersion }
+    if (!$vsExePath)
+    {
+        throw "Could not find Visual Studio executable. Do you have Visual Studio $VSVersion installed?"
+    }
+
+    & $vsExePath $SolutionOrProject
+}
+New-Alias -Name vs -Value Open-VisualStudio
+
 function Out-Notepad
 {
     param
