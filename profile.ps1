@@ -2,6 +2,7 @@ Import-Module $PSScriptRoot\Scripts\editors.ps1
 Import-Module $PSScriptRoot\Scripts\git.ps1
 Import-Module $PSScriptRoot\Scripts\win32.ps1
 Import-Module $PSScriptRoot\Scripts\powerstate.ps1
+Import-Module $PSScriptRoot\Scripts\bitscopy.ps1
 if ($PSVersionTable.PSVersion.Major -ge 6) { Import-Module "$PSScriptRoot\Scripts\base64.ps1" }
 
 function UploadTo-Catbox { & "$PSScriptRoot\Scripts\UploadTo-Catbox.ps1" @args }
