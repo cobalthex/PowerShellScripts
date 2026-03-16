@@ -20,6 +20,11 @@ function Wait-BITSCopy {
         [string]$Destination
     )
 
+    if ($Destination -like '*\')
+    {
+        New-Item -ItemType Directory -Path $Destination -Force
+    }
+
     $job = Start-BitsTransfer `
         -Source $Source `
         -Destination $Destination `
@@ -28,6 +33,7 @@ function Wait-BITSCopy {
 
     try
     {
+        $activityName = "Copying $((Resolve-Path $Source).Count) file(s)"
         while ($job.JobState -in @('Connecting', 'Transferring'))
         {
             $percent = if ($job.BytesTotal -gt 0) { [int](100 * $job.BytesTransferred / $job.BytesTotal) } else { 0 }
@@ -35,7 +41,7 @@ function Wait-BITSCopy {
             $timeLeft = if ($job.BytesTransferred -gt 0) { [int](($job.BytesTotal - $job.BytesTransferred) * ($timeTaken / $job.BytesTransferred)) } else { '∞' }
 
             Write-Progress `
-                -Activity "Copying files" `
+                -Activity $activityName `
                 -Status ('  {0} / {1} ({2}%) {3} minutes remaining' -f @((Format-FileSize $job.BytesTransferred), (Format-FileSize $job.BytesTotal), $percent, $timeLeft) ) `
                 -PercentComplete $percent
 
@@ -47,7 +53,7 @@ function Wait-BITSCopy {
             'Transferred' {
                 $size = $job.BytesTotal
                 Complete-BitsTransfer $job
-                Write-Progress -Activity "Copying files" -Completed
+                Write-Progress -Activity $activityName -Completed
                 Write-Host -ForegroundColor Green "File copy complete! ($(Format-FileSize $size))"
                 Remove-Variable -Name 'job'
             }
@@ -59,7 +65,7 @@ function Wait-BITSCopy {
             }
         }
     }
-    # can catch CTRL+C
+    # catch CTRL+C
     finally
     {
         if ($job -and $job.JobState -notin @('Transferred', 'Acknowledged'))
