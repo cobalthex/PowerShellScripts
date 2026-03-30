@@ -13,16 +13,16 @@ function Format-FileSize {
 
 function Wait-BITSCopy {
     param(
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory, Position = 0)]
         [string[]]$Source,
 
-        [Parameter(Mandatory = $true, Position = 1)]
+        [Parameter(Mandatory, Position = 1)]
         [string]$Destination
     )
 
     if ($Destination -like '*\')
     {
-        New-Item -ItemType Directory -Path $Destination -Force
+        New-Item -ItemType Directory -Path $Destination -Force | Out-Null
     }
 
     $job = Start-BitsTransfer `
@@ -76,3 +76,52 @@ function Wait-BITSCopy {
     }
 }
 Set-Alias -Name bcp -Value Wait-BITSCopy
+
+function Wait-Robocopy
+{
+    param(
+        [Parameter(Mandatory)]
+        [string]$Source,
+
+        [Parameter(Mandatory)]
+        [string]$Destination,
+
+        [string]$Filter = "*"
+    )
+
+    $rcpArgs = @(
+        $Source
+        $Destination
+        $Filter
+        "/E"
+        "/MT:16"
+        "/R:1"
+        "/W:1"
+        "/ETA"
+        "/NJH"
+        "/NJS"
+        "/NDL"
+    )
+
+    $rcpRegex = [regex]'(\d+(?:\.\d+)?)%'
+    & robocopy @rcpArgs 2>&1 | %
+    {
+        $regexMatch = $rcpRegex.Match($_)
+        if ($regexMatch.Success)
+        {
+            $percent = [double]$regexMatch.Groups[1]
+
+            Write-Progress `
+                -Activity "Copying files" `
+                -Status $_.Trim() `
+                -PercentComplete $percent
+        }
+    }
+    $exit = $LASTEXITCODE
+    Write-Progress -Activity "Copying files" -Completed
+    if ($exit -gt 7)
+    {
+        throw "Robocopy failed with exit code $exit"
+    }
+}
+Set-Alias -Name rcp -Value Wait-Robocopy

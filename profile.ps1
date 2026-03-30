@@ -1,5 +1,6 @@
 Import-Module $PSScriptRoot\Scripts\editors.ps1
 Import-Module $PSScriptRoot\Scripts\git.ps1
+Import-Module $PSScriptRoot\Scripts\user32.ps1
 Import-Module $PSScriptRoot\Scripts\win32.ps1
 Import-Module $PSScriptRoot\Scripts\powerstate.ps1
 Import-Module $PSScriptRoot\Scripts\bitscopy.ps1
