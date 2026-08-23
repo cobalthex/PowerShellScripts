@@ -52,13 +52,16 @@ function gco {
     }
 }
 
+# checkout a remote branch as a new branch and track that remote
 function grco {
     Param(
         [string]$Remote = 'origin',
         [string]$Branch = 'main',
         [Parameter(Mandatory=$true,Position=0)]
         [string]$CheckoutAs,
-        [switch]$Stash
+        [switch]$Stash,
+        [Alias('m')]
+        [string]$CreateEmptyCommitWithMessage
     )
 
     if ($Stash) {
@@ -72,10 +75,29 @@ function grco {
         git stash pop
     }
 
-    git lg -1
+    if ($CreateEmptyCommitWithMessage)
+    {
+        git commit --allow-empty -m"$CreateEmptyCommitWithMessage"
+        git log --oneline -2
+    }
+    else {
+        git log --oneline -1
+    }
 
-    #-b vs -B (create vs overwrite)
-    # git checkout -b $CheckoutAs --guess "$Remote/$Branch" ?
+    #-b vs -B (create vs overwrite)?
+}
+
+# checkout a remote branch without creating a new branch
+function gcor {
+    Param(
+        [string]$Remote = 'origin',
+        [string]$Branch = 'main'
+    )
+
+    git fetch --no-tags $Remote $Branch # $rest args ?
+    if ($?) { git checkout "$($Remote)/$($Branch)" }
+
+    git log --oneline -1
 }
 
 function glr {
