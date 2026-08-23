@@ -1,5 +1,12 @@
 function sublime { & "C:\Program Files\Sublime Text\sublime_text.exe" $args }
 
+function touch {
+    param([string[]]$Path)
+    process {
+        New-Item -ItemType File -Path $Path
+    }
+}
+
 function Out-Notepad
 {
     param
